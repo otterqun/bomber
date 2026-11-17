@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Arena Pixel Bombers — Retro Grid Combat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="touch-mode-auto">
+  <div class="scanline-backdrop" aria-hidden="true"></div>
+
+  <div class="app-shell" id="appShell">
+    <!-- Top Compact HUD Bar -->
+    <header class="top-bar">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">💣</span>
+        <h1>ARENA PIXEL BOMBERS</h1>
+        <span class="diff-badge diff-medium hidden" id="hudDiffBadge">MEDIUM</span>
+      </div>
+
+      <!-- Mobile Compact Live Stats (shown in-game on compact/mobile viewports) -->
+      <div class="compact-live-stats hidden" id="compactLiveStats">
+        <span title="Max Bombs">💣<b id="cStatBombs">1</b></span>
+        <span title="Blast Radius">🔥<b id="cStatFire">2</b></span>
+        <span title="Speed">👟<b id="cStatSpeed">1</b></span>
+        <span title="Alive Fighters">👥<b id="cStatAlive">4</b></span>
+      </div>
+
+      <div class="hud-controls">
+        <div class="timer-pill hidden" id="timerPill" title="Match Timer">
+          <span class="timer-label">TIME</span>
+          <span class="timer-value" id="timerDisplay">02:30</span>
+        </div>
+
+        <button class="pixel-btn btn-secondary btn-compact" id="touchToggleBtn" type="button" title="Toggle Touch Controls">
+          🎮 AUTO
+        </button>
+
+        <button class="pixel-btn btn-secondary btn-icon hidden" id="pauseBtn" type="button" title="Pause (P / Esc)" aria-label="Pause Game">
+          ⏸️
+        </button>
+
+        <button class="pixel-btn btn-secondary btn-icon" id="bgmBtn" type="button" title="Toggle Chiptune BGM" aria-label="Toggle Background Music">
+          🎵
+        </button>
+
+        <button class="pixel-btn btn-secondary btn-icon" id="muteBtn" type="button" title="Mute / Unmute All Audio" aria-label="Toggle Sound">
+          🔊
+        </button>
+      </div>
+    </header>
+
+    <!-- Desktop 4-Fighter HUD Strip -->
+    <section class="player-hud hidden" id="playerHud" aria-label="Fighter Status">
+      <!-- Populated dynamically by script.js -->
+    </section>
+
+    <!-- Main Arena Stage -->
+    <main class="stage-wrapper" id="stageWrapper">
+      <div class="canvas-frame" id="canvasFrame">
+        <canvas id="gameCanvas" width="480" height="416"></canvas>
+
+        <!-- Sudden Death Alert Banner -->
+        <div class="sudden-death-banner hidden" id="suddenDeathBanner">
+          ⚠️ SUDDEN DEATH — ARENA CLOSING!
+        </div>
+      </div>
+
+      <!-- ==============================================================
+           HOMEPAGE (MAIN MENU) OVERLAY
+           ============================================================== -->
+      <div class="overlay home-overlay" id="homeScreen">
+        <div class="home-card">
+          <div class="home-header">
+            <div class="glow-subtitle">1 PLAYER VS 3 AI BOTS • 16-BIT GRID COMBAT</div>
+            <h2 class="home-title">ARENA PIXEL BOMBERS</h2>
+          </div>
+
+          <div class="home-body-grid">
+            <!-- Left Column (Landscape): Map Selector -->
+            <div class="menu-section map-section">
+              <div class="section-header">
+                <span class="step-tag">STEP 1</span>
+                <span class="section-title">SELECT ARENA MAP</span>
+              </div>
+              <div class="map-grid" id="mapGrid">
+                <button class="map-card active" data-map="classic" type="button">
+                  <canvas class="map-preview" id="preview-classic" width="60" height="52"></canvas>
+                  <div class="map-info">
+                    <span class="map-name">CLASSIC FORTRESS</span>
+                    <span class="map-desc">Symmetrical pillars &amp; balanced cover</span>
+                  </div>
+                </button>
+
+                <button class="map-card" data-map="lava" type="button">
+                  <canvas class="map-preview" id="preview-lava" width="60" height="52"></canvas>
+                  <div class="map-info">
+                    <span class="map-name">MAGMA FOUNDRY</span>
+                    <span class="map-desc">Open center pit &amp; corner bunkers</span>
+                  </div>
+                </button>
+
+                <button class="map-card" data-map="cyber" type="button">
+                  <canvas class="map-preview" id="preview-cyber" width="60" height="52"></canvas>
+                  <div class="map-info">
+                    <span class="map-name">CYBER NEON GRID</span>
+                    <span class="map-desc">L/T corridor maze &amp; choke points</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Right Column (Landscape): Difficulty, Records & CTA -->
+            <div class="home-right-col">
+              <div class="menu-section">
+                <div class="section-header">
+                  <span class="step-tag">STEP 2</span>
+                  <span class="section-title">BOT DIFFICULTY</span>
+                </div>
+                <div class="difficulty-row" id="difficultyRow">
+                  <button class="diff-btn" data-diff="beginner" type="button">
+                    <span class="diff-pill pill-beginner">BEGINNER</span>
+                  </button>
+                  <button class="diff-btn active" data-diff="medium" type="button">
+                    <span class="diff-pill pill-medium">MEDIUM</span>
+                  </button>
+                  <button class="diff-btn" data-diff="pro" type="button">
+                    <span class="diff-pill pill-pro">PRO</span>
+                  </button>
+                </div>
+                <p class="diff-behavior-desc" id="diffBehaviorDesc">
+                  Balanced tactical BFS bots that verify safe escapes and seek power-ups.
+                </p>
+              </div>
+
+              <div class="bottom-panels">
+                <div class="career-panel">
+                  <div class="panel-top">
+                    <span>RECORDS (<span id="statsDiffLabel">MEDIUM</span>)</span>
+                    <button class="text-link-btn" id="resetStatsBtn" type="button">RESET</button>
+                  </div>
+                  <div class="career-stats">
+                    <div class="c-stat">
+                      <span class="c-val" id="statWins">0</span>
+                      <span class="c-lbl">WINS</span>
+                    </div>
+                    <div class="c-stat">
+                      <span class="c-val" id="statStreak">0</span>
+                      <span class="c-lbl">STREAK</span>
+                    </div>
+                    <div class="c-stat">
+                      <span class="c-val" id="statBestTime">--:--</span>
+                      <span class="c-lbl">BEST</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="howto-panel">
+                  <div class="panel-top"><span>CONTROLS</span></div>
+                  <div class="keycap-list">
+                    <div><kbd>WASD</kbd>/<kbd>ARROWS</kbd> Move</div>
+                    <div><kbd>SPACE</kbd> Bomb • <kbd>P</kbd> Pause</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="cta-sticky-wrap">
+                <button class="pixel-btn btn-cta" id="startBattleBtn" type="button">
+                  ⚔️ START BATTLE
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==============================================================
+           PAUSE MENU OVERLAY
+           ============================================================== -->
+      <div class="overlay hidden" id="pauseOverlay">
+        <div class="modal-card compact-card">
+          <span class="subtitle">MATCH PAUSED</span>
+          <h2>PAUSED</h2>
+          <div class="modal-actions">
+            <button class="pixel-btn btn-primary" id="resumeBtn" type="button">▶ RESUME</button>
+            <button class="pixel-btn btn-gold" id="restartFromPauseBtn" type="button">🔄 RESTART ROUND</button>
+            <button class="pixel-btn btn-secondary" id="pauseTouchToggleBtn" type="button">🎮 TOUCH UI: AUTO</button>
+            <button class="pixel-btn btn-secondary" id="pauseHomeBtn" type="button">🏠 MAIN MENU (HOME)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==============================================================
+           VICTORY / DEFEAT MODAL
+           ============================================================== -->
+      <div class="overlay hidden" id="gameOverOverlay">
+        <div class="modal-card compact-card">
+          <span class="subtitle" id="resultSubtitle">ROUND COMPLETE</span>
+          <h2 id="winnerTitle">VICTORY!</h2>
+          <p class="result-desc" id="resultDesc">You outlasted all 3 AI bots.</p>
+          <div class="result-meta hidden" id="newRecordBadge">🏆 NEW BEST WIN TIME!</div>
+
+          <div class="modal-actions">
+            <button class="pixel-btn btn-primary" id="playAgainBtn" type="button">🔄 PLAY AGAIN</button>
+            <button class="pixel-btn btn-secondary" id="gameOverHomeBtn" type="button">🏠 MAIN MENU (HOME)</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Handheld Arcade Touch Control Deck -->
+    <section class="touch-controls hidden" id="touchControls" aria-label="Touch Controls">
+      <div class="dpad" id="dpad">
+        <button class="dpad-btn dpad-up" data-dir="up" type="button" aria-label="Move Up">▲</button>
+        <button class="dpad-btn dpad-left" data-dir="left" type="button" aria-label="Move Left">◀</button>
+        <div class="dpad-center"></div>
+        <button class="dpad-btn dpad-right" data-dir="right" type="button" aria-label="Move Right">▶</button>
+        <button class="dpad-btn dpad-down" data-dir="down" type="button" aria-label="Move Down">▼</button>
+      </div>
+      <button class="bomb-touch-btn" id="touchBombBtn" type="button" aria-label="Drop Bomb">
+        💣<br /><span>BOMB</span>
+      </button>
+    </section>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
